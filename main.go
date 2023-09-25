@@ -6,6 +6,7 @@ import (
 	"sort"
 	"local-advent-2022/day_01"
 	"local-advent-2022/day_02"
+	"local-advent-2022/day_03"
 )
 
 func main() {
@@ -50,6 +51,12 @@ var RUN_DATA []puzzleData = []puzzleData{
 		part: 2,
 		inputFile: "inputs/day_02_input.txt",
 		fn: func(input string) any {return day_02.PartTwo(input)},
+	},
+	{
+		day: 3,
+		part: 1,
+		inputFile: "inputs/day_03_input.txt",
+		fn: func(input string) any {return day_03.PartOne(input)},
 	},
 }
 

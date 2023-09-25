@@ -12,3 +12,5 @@ func AsLines(s string) []string {
 
 	return lines
 }
+
+var Empty struct{}
