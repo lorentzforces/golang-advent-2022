@@ -3,28 +3,132 @@ package day_03
 import (
 	"errors"
 	"fmt"
-	"sort"
 	"local-advent-2022/util"
 )
 
-func PartOne(input string) uint {
-	prioritySum := uint(0)
-	for _, line := range util.AsLines(input) {
-		inv, err := parseInventory(line)
-		if err != nil {
-			panic(err)
-		}
+type groupInventory []ruckContents
+type ruckContents map[byte]struct{}
 
-		for i := 0; i < len(inv.both); i++ {
-			prio, err := itemPriority(inv.both[i])
-			if err != nil {
-				panic(err)
+func PartOne(input string) uint {
+	groups, err := parseHalvedStringGroups(util.AsLines(input))
+	if err != nil {
+		panic(err)
+	}
+
+	prioritySum := uint(0)
+	for _, group := range groups {
+		prioritySum += calcSharedPriorities(group)
+	}
+	return prioritySum
+}
+
+func PartTwo(input string) uint {
+	groups, err := parseTripleLineGroups(util.AsLines(input))
+	if err != nil {
+		panic(err)
+	}
+
+	prioritySum := uint(0)
+	for _, group := range groups {
+		prioritySum += calcSharedPriorities(group)
+	}
+	return prioritySum
+}
+
+func calcSharedPriorities(group groupInventory) uint {
+	groupItemsPresence := make(map[byte]int)
+	for _, ruck := range group {
+		for itemPrio := range ruck {
+			currentVal := 0
+			v, present := groupItemsPresence[itemPrio]
+			if present {
+				currentVal = v
 			}
-			prioritySum += prio
+			groupItemsPresence[itemPrio] = currentVal + 1
 		}
 	}
 
-	return prioritySum
+	numRucks := len(group)
+	totalPrio := uint(0)
+	for itemPrio, countSeen := range groupItemsPresence {
+		// if the item is in all rucks in the group
+		if countSeen == numRucks {
+			totalPrio += uint(itemPrio)
+		}
+	}
+	return totalPrio
+}
+
+func parseTripleLineGroups(lines []string) ([]groupInventory, error) {
+	if len(lines) % 3 != 0 {
+		err := errors.New(fmt.Sprintf(
+			"Input should be in groups of 3 lines, but found %d lines instead",
+			len(lines),
+		))
+		return nil, err
+	}
+
+	groups := make([]groupInventory, 0, len(lines) / 3)
+	for i := 0; i < len(lines); i += 3 {
+		group := make(groupInventory, 3)
+		for j := 0; j < 3; j++ {
+			inventory, err := charValues(lines[i + j])
+			if err != nil {
+				return nil, err
+			}
+			group[j] = inventory
+		}
+		groups = append(groups, group)
+	}
+
+	return groups, nil
+}
+
+
+func parseHalvedStringGroups(lines []string) ([]groupInventory, error) {
+	groups := make([]groupInventory, 0, len(lines))
+	for _, line := range lines {
+		lineGroups, err := parseHalvedStringInventories(line)
+		if err != nil {
+			return make([]groupInventory, 0), err
+		}
+		groups = append(groups, lineGroups)
+	}
+	return groups, nil
+}
+
+func parseHalvedStringInventories(s string) ([]ruckContents, error) {
+	if len(s) % 2 != 0 {
+		err := errors.New(fmt.Sprintf("Group inventories string not an even number: %d", len(s)))
+		return nil, err
+	}
+	eachSize := len(s) / 2
+	left, err := charValues(s[:eachSize])
+	if err != nil {
+		return nil, err
+	}
+	right, err := charValues(s[eachSize:])
+	if err != nil {
+		return nil, err
+	}
+	return []ruckContents{left, right}, nil
+}
+
+// From an input string:
+// - remove duplicate characters
+// - translate characters to their "priority" values
+func charValues(s string) (ruckContents, error) {
+	presentChars := make(map[byte]struct{})
+	for i :=0; i < len(s); i++ {
+		c := s[i]
+		prio, err := itemPriority(c)
+		if err != nil {
+			return nil, err
+		}
+		presentChars[prio] = util.Empty
+	}
+
+	return presentChars, nil
 }
 
 type inventory struct {
@@ -33,60 +137,11 @@ type inventory struct {
 	both string
 }
 
-func parseInventory(s string) (inventory, error) {
-	inv := inventory {
-		left: "",
-		right: "",
-		both: "",
-	}
-
-	if len(s) % 2 != 0 {
-		return inv, errors.New(fmt.Sprintf("Inventory string not an even number: %d", len(s)))
-	}
-
-	sideSize := len(s) / 2
-
-	leftCharMap := make(map[byte]struct{})
-	for i := 0; i < sideSize; i++ {
-		c := s[i]
-		leftCharMap[c] = util.Empty
-	}
-	rightCharMap := make(map[byte]struct{})
-	for i := sideSize; i < len(s); i++ {
-		c := s[i]
-		rightCharMap[c] = util.Empty
-	}
-
-	leftChars := make([]byte, 0, len(leftCharMap))
-	rightChars := make([]byte, 0, len(rightCharMap))
-	bothChars := make([]byte, 0)
-	for c := range leftCharMap {
-		leftChars = append(leftChars, c)
-		_, inRight := rightCharMap[c]
-		if inRight {
-			bothChars = append(bothChars, c)
-		}
-
-	}
-	for c := range rightCharMap {
-		rightChars = append(rightChars, c)
-	}
-
-	sort.Slice(leftChars, func(i, j int) bool {return leftChars[i] < leftChars[j]})
-	sort.Slice(rightChars, func(i, j int) bool {return rightChars[i] < rightChars[j]})
-	sort.Slice(bothChars, func(i, j int) bool {return bothChars[i] < bothChars[j]})
-
-	inv.left = string(leftChars)
-	inv.right = string(rightChars)
-	inv.both = string(bothChars)
-	return inv, nil
-}
-
-func itemPriority(char byte) (uint, error) {
+func itemPriority(char byte) (byte, error) {
 	if 64 < char && char < 91 {
-		return uint(char - 64 + 26), nil
+		return byte(char - 64 + 26), nil
 	} else if 96 < char && char < 123 {
-		return uint(char - 96), nil
+		return byte(char - 96), nil
 	} else {
 		return 0, errors.New(fmt.Sprintf("Character given outside ASCII range: %c", char))
 	}

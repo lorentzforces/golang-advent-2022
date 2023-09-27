@@ -58,6 +58,12 @@ var RUN_DATA []puzzleData = []puzzleData{
 		inputFile: "inputs/day_03_input.txt",
 		fn: func(input string) any {return day_03.PartOne(input)},
 	},
+	{
+		day: 3,
+		part: 2,
+		inputFile: "inputs/day_03_input.txt",
+		fn: func(input string) any {return day_03.PartTwo(input)},
+	},
 }
 
 type runFunc func(string) any
