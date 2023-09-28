@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"sort"
 	"local-advent-2022/day_01"
 	"local-advent-2022/day_02"
 	"local-advent-2022/day_03"
+	"local-advent-2022/day_04"
+	"os"
+	"sort"
 )
 
 func main() {
@@ -63,6 +64,18 @@ var RUN_DATA []puzzleData = []puzzleData{
 		part: 2,
 		inputFile: "inputs/day_03_input.txt",
 		fn: func(input string) any {return day_03.PartTwo(input)},
+	},
+	{
+		day: 4,
+		part: 1,
+		inputFile: "inputs/day_04_input.txt",
+		fn: func(input string) any {return day_04.PartOne(input)},
+	},
+	{
+		day: 4,
+		part: 2,
+		inputFile: "inputs/day_04_input.txt",
+		fn: func(input string) any {return day_04.PartTwo(input)},
 	},
 }
 
