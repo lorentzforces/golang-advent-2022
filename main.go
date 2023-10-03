@@ -6,6 +6,7 @@ import (
 	"local-advent-2022/day_02"
 	"local-advent-2022/day_03"
 	"local-advent-2022/day_04"
+	"local-advent-2022/day_05"
 	"os"
 	"sort"
 )
@@ -76,6 +77,18 @@ var RUN_DATA []puzzleData = []puzzleData{
 		part: 2,
 		inputFile: "inputs/day_04_input.txt",
 		fn: func(input string) any {return day_04.PartTwo(input)},
+	},
+	{
+		day: 5,
+		part: 1,
+		inputFile: "inputs/day_05_input.txt",
+		fn: func(input string) any {return day_05.PartOne(input)},
+	},
+	{
+		day: 5,
+		part: 2,
+		inputFile: "inputs/day_05_input.txt",
+		fn: func(input string) any {return day_05.PartTwo(input)},
 	},
 }
 
